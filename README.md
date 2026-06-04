@@ -14,8 +14,6 @@
 
 Open `index.html` directly in any browser — no build step, no server required.
 
-Or host it for free on GitHub Pages (see deployment section below).
-
 ---
 
 ## What this model demonstrates
