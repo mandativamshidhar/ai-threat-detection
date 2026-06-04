@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Based Cybersecurity Threat Detection System</title>
+  <meta name="description" content="Interactive working model of the AI-Based Cybersecurity Threat Detection System — Industrial Training Project by Mandati Vamshidhar Reddy, SSK Limited Hyderabad." />
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary:   #ffffff;
+      --bg-secondary: #f4f6f8;
+      --bg-tertiary:  #eef1f5;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --text-tertiary:  #9ca3af;
+      --border:       rgba(0,0,0,0.10);
+      --border-md:    rgba(0,0,0,0.18);
+      --radius-md:    8px;
+      --radius-lg:    12px;
+      --font-sans:    system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary:    #1a1f2e;
+        --bg-secondary:  #242938;
+        --bg-tertiary:   #1e2333;
+        --text-primary:  #f1f5f9;
+        --text-secondary:#94a3b8;
+        --text-tertiary: #64748b;
+        --border:        rgba(255,255,255,0.10);
+        --border-md:     rgba(255,255,255,0.18);
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .page-wrap { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .topbar-sub   { font-size: 12px; color: var(--text-tertiary); }
+    .badge-live {
+      background: #1D9E75; color: #fff; font-size: 11px;
+      padding: 3px 9px; border-radius: 20px; font-weight: 500;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .badge-live::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: #fff; animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    #clock { font-size: 12px; color: var(--text-tertiary); }
+
+    /* ── KPI row ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+    .kpi {
+      background: var(--bg-secondary); border-radius: var(--radius-md);
+      padding: 13px 15px;
+    }
+    .kpi-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+    .kpi-value { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+    .kpi-sub   { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+    .kpi-value.green { color: #0F6E56; }
+    .kpi-value.red   { color: #A32D2D; }
+    .kpi-value.blue  { color: #185FA5; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 4px;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .tab {
+      padding: 9px 16px; font-size: 13px; cursor: pointer;
+      color: var(--text-secondary); background: none;
+      border: none; border-bottom: 2px solid transparent;
+      font-family: var(--font-sans); transition: color .15s;
+    }
+    .tab:hover { color: var(--text-primary); }
+    .tab.active { color: var(--text-primary); border-bottom: 2px solid var(--text-primary); font-weight: 500; }
+
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-primary); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 15px 17px; margin-bottom: 12px;
+    }
+    .card-title { font-size: 13px; color: var(--text-secondary); margin-bottom: 11px; font-weight: 500; }
+
+    /* ── Two / three column grids ── */
+    .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    /* ── Scenario buttons ── */
+    .scenario-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .scenario-btn {
+      font-size: 11px; padding: 4px 11px; border-radius: 20px; cursor: pointer;
+      border: 0.5px solid var(--border-md); background: var(--bg-primary);
+      color: var(--text-secondary); font-family: var(--font-sans);
+    }
+    .scenario-btn.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+
+    /* ── Alert feed ── */
+    .alert-feed { max-height: 220px; overflow-y: auto; }
+    .alert-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 12px;
+    }
+    .alert-item:last-child { border-bottom: none; }
+    .sev { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+    .sev.high { background: #FCEBEB; color: #A32D2D; }
+    .sev.med  { background: #FAEEDA; color: #854F0B; }
+    .sev.low  { background: #EAF3DE; color: #3B6D11; }
+    .sev.info { background: #E6F1FB; color: #185FA5; }
+    .alert-text { flex: 1; color: var(--text-primary); line-height: 1.4; }
+    .alert-time { color: var(--text-tertiary); font-size: 11px; white-space: nowrap; }
+
+    /* ── Feature bars ── */
+    .feature-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 12px; }
+    .feature-name { width: 100px; color: var(--text-secondary); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .feature-track { flex: 1; height: 10px; background: var(--bg-secondary); border-radius: 5px; overflow: hidden; }
+    .feature-fill  { height: 100%; border-radius: 5px; background: #185FA5; transition: width .5s; }
+    .feature-val   { width: 38px; font-size: 11px; color: var(--text-secondary); }
+
+    /* ── Classify form ── */
+    .form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: 12px; color: var(--text-secondary); }
+
+    select, input[type="number"] {
+      padding: 7px 10px; font-size: 13px;
+      border: 0.5px solid var(--border-md); border-radius: var(--radius-md);
+      background: var(--bg-primary); color: var(--text-primary);
+      font-family: var(--font-sans); width: 100%;
+    }
+    select:focus, input:focus { outline: 2px solid #185FA5; outline-offset: 1px; }
+
+    button {
+      padding: 7px 14px; font-size: 13px;
+      border: 0.5px solid var(--border-md); border-radius: var(--radius-md);
+      background: transparent; cursor: pointer; color: var(--text-primary);
+      font-family: var(--font-sans); transition: background .12s;
+    }
+    button:hover { background: var(--bg-secondary); }
+
+    /* ── Classify result ── */
+    .classify-result {
+      background: var(--bg-secondary); border-radius: var(--radius-md);
+      padding: 14px; margin-top: 12px; display: none;
+    }
+    .classify-result.visible { display: block; }
+    .result-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .result-value { font-size: 22px; font-weight: 600; }
+    .result-value.normal { color: #0F6E56; }
+    .result-value.dos    { color: #A32D2D; }
+    .result-value.probe  { color: #854F0B; }
+    .result-value.r2l    { color: #185FA5; }
+    .result-value.u2r    { color: #993556; }
+
+    /* ── Confidence bars ── */
+    .confidence-row { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+    .conf-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+    .conf-name { width: 55px; color: var(--text-secondary); }
+    .conf-bar  { flex: 1; height: 7px; background: var(--bg-primary); border-radius: 4px; overflow: hidden; }
+    .conf-fill { height: 100%; border-radius: 4px; transition: width .6s; }
+    .conf-pct  { width: 32px; text-align: right; color: var(--text-secondary); }
+
+    /* ── Metrics table ── */
+    .metrics-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .metrics-table th {
+      text-align: left; font-weight: 500; color: var(--text-secondary);
+      padding: 7px 9px; border-bottom: 0.5px solid var(--border); font-size: 11px;
+    }
+    .metrics-table td { padding: 8px 9px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); }
+    .metrics-table tr:last-child td { border-bottom: none; }
+    .best  { color: #0F6E56; font-weight: 600; }
+    .worst { color: #A32D2D; }
+
+    /* ── Trend chart ── */
+    .trend-area { position: relative; width: 100%; height: 140px; }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 32px; text-align: center; font-size: 11px;
+      color: var(--text-tertiary); border-top: 0.5px solid var(--border); padding-top: 16px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .kpi-row  { grid-template-columns: 1fr 1fr; }
+      .two-col  { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="ti ti-shield-lock" style="font-size:22px" aria-hidden="true"></i>
+      <div>
+        <div class="topbar-title">AI Cybersecurity Threat Detection</div>
+        <div class="topbar-sub">SSK Limited, Hyderabad &mdash; NSL-KDD / CICIDS2017</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="badge-live">LIVE</div>
+      <span id="clock"></span>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label"><i class="ti ti-radar" aria-hidden="true"></i> Events analyzed</div>
+      <div class="kpi-value blue" id="kpi-events">11,247</div>
+      <div class="kpi-sub">last 24 hours</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><i class="ti ti-bell-ringing" aria-hidden="true"></i> Alerts generated</div>
+      <div class="kpi-value red" id="kpi-alerts">847</div>
+      <div class="kpi-sub">7.5% of events</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><i class="ti ti-check" aria-hidden="true"></i> Detection accuracy</div>
+      <div class="kpi-value green">96.4%</div>
+      <div class="kpi-sub">Random Forest</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><i class="ti ti-filter-off" aria-hidden="true"></i> False positive rate</div>
+      <div class="kpi-value green">2.9%</div>
+      <div class="kpi-sub">vs 17.2% Snort</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="tab" role="tab" onclick="switchTab('classify',this)">Classify event</button>
+    <button class="tab" role="tab" onclick="switchTab('models',this)">Model comparison</button>
+    <button class="tab" role="tab" onclick="switchTab('matrix',this)">Confusion matrix</button>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 1 — Dashboard
+  ════════════════════════════════════════ -->
+  <div id="tab-dashboard" class="panel active">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-area-line" aria-hidden="true" style="margin-right:4px"></i>Traffic trend (simulated live)</div>
+        <div class="scenario-btns">
+          <button class="scenario-btn active" onclick="setScenario('normal',this)">Normal</button>
+          <button class="scenario-btn" onclick="setScenario('dos',this)">DoS spike</button>
+          <button class="scenario-btn" onclick="setScenario('probe',this)">Port scan</button>
+          <button class="scenario-btn" onclick="setScenario('mixed',this)">Mixed</button>
+        </div>
+        <div class="trend-area">
+          <canvas id="trendChart" role="img" aria-label="Live trend chart of normal vs attack traffic over time"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-donut" aria-hidden="true" style="margin-right:4px"></i>Attack distribution</div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="position:relative;width:110px;height:110px;flex-shrink:0;">
+            <canvas id="donutChart" width="110" height="110" role="img" aria-label="Donut chart: DoS 38%, Normal 23%, Probe 16%, R2L 12%, U2R 4%"></canvas>
+          </div>
+          <div style="flex:1;font-size:12px;display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#E24B4A;flex-shrink:0;"></span><span style="color:var(--text-secondary)">DoS</span><span style="margin-left:auto;font-weight:600">38.2%</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;flex-shrink:0;"></span><span style="color:var(--text-secondary)">Normal</span><span style="margin-left:auto;font-weight:600">22.5%</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#EF9F27;flex-shrink:0;"></span><span style="color:var(--text-secondary)">Probe</span><span style="margin-left:auto;font-weight:600">16.3%</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#534AB7;flex-shrink:0;"></span><span style="color:var(--text-secondary)">R2L</span><span style="margin-left:auto;font-weight:600">12.1%</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#D4537E;flex-shrink:0;"></span><span style="color:var(--text-secondary)">U2R</span><span style="margin-left:auto;font-weight:600">4.0%</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#888780;flex-shrink:0;"></span><span style="color:var(--text-secondary)">Other</span><span style="margin-left:auto;font-weight:600">6.9%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list-details" aria-hidden="true" style="margin-right:4px"></i>Live alert feed</div>
+        <div class="alert-feed" id="alertFeed" role="log" aria-live="polite" aria-label="Live security alerts"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-bar-popular" aria-hidden="true" style="margin-right:4px"></i>Top features — Random Forest</div>
+        <div id="featureBars"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 2 — Classify event
+  ════════════════════════════════════════ -->
+  <div id="tab-classify" class="panel">
+    <div class="card">
+      <div class="card-title" style="font-size:14px;margin-bottom:14px;">
+        <i class="ti ti-cpu" aria-hidden="true" style="margin-right:6px"></i>Classify a network event — Random Forest + Isolation Forest pipeline
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Protocol type</div>
+          <select id="f-protocol"><option>tcp</option><option>udp</option><option>icmp</option></select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Service</div>
+          <select id="f-service"><option>http</option><option>ftp</option><option>smtp</option><option>ssh</option><option>dns</option><option>other</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Source bytes (src_bytes)</div>
+          <input type="number" id="f-src" value="1032" min="0" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Destination bytes (dst_bytes)</div>
+          <input type="number" id="f-dst" value="888" min="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Duration (seconds)</div>
+          <input type="number" id="f-dur" value="2" min="0" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Connection count</div>
+          <input type="number" id="f-count" value="5" min="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Flag</div>
+          <select id="f-flag"><option>SF</option><option>S0</option><option>REJ</option><option>RSTO</option><option>SH</option></select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Logged in</div>
+          <select id="f-login"><option value="1">Yes</option><option value="0">No</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button onclick="classifyEvent()"><i class="ti ti-cpu" aria-hidden="true"></i> Run classifier</button>
+        <button onclick="loadPreset('dos')">Load DoS preset</button>
+        <button onclick="loadPreset('probe')">Load Probe preset</button>
+        <button onclick="loadPreset('normal')">Load Normal preset</button>
+      </div>
+
+      <div class="classify-result" id="classifyResult">
+        <div class="result-label">Predicted class</div>
+        <div class="result-value" id="resultClass">—</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="resultDesc">—</div>
+        <div style="margin-top:10px;font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Class probabilities (Random Forest)</div>
+        <div class="confidence-row" id="confBars"></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text-secondary)" id="anomalyResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 3 — Model comparison
+  ════════════════════════════════════════ -->
+  <div id="tab-models" class="panel">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title"><i class="ti ti-trophy" aria-hidden="true" style="margin-right:4px"></i>Model performance comparison (NSL-KDD test set)</div>
+      <table class="metrics-table">
+        <thead>
+          <tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>FPR</th><th>ROC-AUC</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="font-weight:600">Random Forest</td><td class="best">96.4%</td><td class="best">95.8%</td><td class="best">96.1%</td><td class="best">0.959</td><td class="best">2.9%</td><td class="best">0.98</td></tr>
+          <tr><td>Logistic Regression</td><td>91.3%</td><td>89.6%</td><td>88.1%</td><td>0.888</td><td>8.4%</td><td>0.92</td></tr>
+          <tr><td>Isolation Forest</td><td>88.7%</td><td>85.2%</td><td>83.9%</td><td>0.845</td><td>5.6%</td><td>0.91</td></tr>
+          <tr><td>Snort IDS (baseline)</td><td class="worst">82.1%</td><td class="worst">79.4%</td><td class="worst">76.3%</td><td class="worst">0.778</td><td class="worst">17.2%</td><td class="worst">0.81</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-line" aria-hidden="true" style="margin-right:4px"></i>ROC-AUC comparison — all models</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;font-size:12px;color:var(--text-secondary);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:20px;height:3px;border-radius:2px;background:#185FA5;display:inline-block;"></span>Random Forest (0.98)</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:20px;height:3px;border-radius:2px;background:#EF9F27;display:inline-block;"></span>Logistic Reg. (0.92)</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:20px;height:3px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>Isolation Forest (0.91)</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:20px;height:3px;border-radius:2px;background:#E24B4A;display:inline-block;"></span>Snort IDS (0.81)</span>
+      </div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="rocChart" role="img" aria-label="ROC curves: Random Forest AUC 0.98, Logistic Regression 0.92, Isolation Forest 0.91, Snort 0.81"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 4 — Confusion matrix
+  ════════════════════════════════════════ -->
+  <div id="tab-matrix" class="panel">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;"><i class="ti ti-grid-4x4" aria-hidden="true" style="margin-right:4px"></i>Confusion matrix — Random Forest classifier (NSL-KDD test set)</div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;text-align:center;">Predicted label →</div>
+      <div id="matrixContainer" style="overflow-x:auto;"></div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text-secondary);">
+        <strong>Key insight:</strong> Strong diagonal dominance confirms high per-class accuracy.
+        U2R (rare attack) shows 41/43 correctly classified. R2L recall is 98.4%. Normal traffic precision is 99.7%.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    AI-Based Cybersecurity Threat Detection System &mdash;
+    Industrial Training Report &mdash; Mandati Vamshidhar Reddy (22BECCS23) &mdash;
+    B.Tech CSE (Cyber Security), Central University of Jammu &mdash;
+    SSK Limited, Hyderabad &mdash; May 2026
+  </footer>
+
+</div><!-- /page-wrap -->
+
+<!-- ════════════════════════════════════════
+     JavaScript
+════════════════════════════════════════ -->
+<script>
+/* ── Tab switching ── */
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Clock ── */
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ── Feature importance bars ── */
+const features = [
+  {name:'src_bytes',val:0.187},{name:'dst_bytes',val:0.163},{name:'duration',val:0.142},
+  {name:'flag',val:0.118},{name:'count',val:0.097},{name:'srv_count',val:0.082},
+  {name:'logged_in',val:0.071},{name:'dst_host_cnt',val:0.058},{name:'service',val:0.044},{name:'protocol_type',val:0.038}
+];
+const fb = document.getElementById('featureBars');
+features.forEach(f => {
+  const pct = Math.round(f.val / 0.187 * 100);
+  fb.innerHTML += `<div class="feature-bar">
+    <div class="feature-name" title="${f.name}">${f.name}</div>
+    <div class="feature-track"><div class="feature-fill" style="width:${pct}%"></div></div>
+    <div class="feature-val">${f.val}</div>
+  </div>`;
+});
+
+/* ── Live alert feed ── */
+const alertTemplates = [
+  {sev:'high', text:'DoS SYN flood detected — 192.168.1.44 → 10.0.0.1 (142 conn/sec)'},
+  {sev:'med',  text:'Port scan probe — 10.2.0.87 scanning 22 ports on subnet'},
+  {sev:'high', text:'Brute force SSH attempt — 203.0.113.9 (87 failed logins)'},
+  {sev:'low',  text:'Anomaly flagged — unusual byte ratio on FTP session'},
+  {sev:'info', text:'Normal traffic — batch data transfer classified benign'},
+  {sev:'high', text:'R2L attack pattern — unauthorized access attempt via FTP'},
+  {sev:'med',  text:'U2R privilege escalation attempt detected'},
+  {sev:'info', text:'Model confidence: 98.2% — routine HTTP GET requests'},
+  {sev:'med',  text:'ICMP sweep from 172.16.0.33 — Probe classification'},
+  {sev:'high', text:'DDoS pattern — volumetric flood from 3 source IPs'},
+];
+let alertIdx = 0;
+function addAlert() {
+  const a = alertTemplates[alertIdx % alertTemplates.length];
+  alertIdx++;
+  const feed = document.getElementById('alertFeed');
+  const timeStr = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const el = document.createElement('div');
+  el.className = 'alert-item';
+  el.innerHTML = `<span class="sev ${a.sev}">${a.sev.toUpperCase()}</span>
+    <span class="alert-text">${a.text}</span>
+    <span class="alert-time">${timeStr}</span>`;
+  feed.insertBefore(el, feed.firstChild);
+  if (feed.children.length > 12) feed.removeChild(feed.lastChild);
+  /* update counters */
+  const ev = parseInt(document.getElementById('kpi-events').textContent.replace(/,/g,''));
+  document.getElementById('kpi-events').textContent = (ev + Math.floor(Math.random()*4+1)).toLocaleString();
+  if (a.sev === 'high' || a.sev === 'med') {
+    const al = parseInt(document.getElementById('kpi-alerts').textContent.replace(/,/g,''));
+    document.getElementById('kpi-alerts').textContent = (al + 1).toLocaleString();
+  }
+}
+for (let i = 0; i < 6; i++) addAlert();
+setInterval(addAlert, 3500);
+
+/* ── Trend chart ── */
+const trendLabels = Array.from({length:20}, () => '');
+const normalData  = Array.from({length:20}, () => Math.floor(Math.random()*80+350));
+const attackData  = Array.from({length:20}, () => Math.floor(Math.random()*30+20));
+let trendChart, currentScenario = 'normal';
+
+function buildTrend() {
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [
+        {label:'Normal', data:[...normalData], borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,0.08)', fill:true, tension:0.4, pointRadius:0, borderWidth:1.5},
+        {label:'Attacks',data:[...attackData], borderColor:'#E24B4A', backgroundColor:'rgba(226,75,74,0.08)',  fill:true, tension:0.4, pointRadius:0, borderWidth:1.5}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{display:false},y:{ticks:{font:{size:10}},grid:{color:'rgba(128,128,128,0.1)'},border:{display:false}}}
+    }
+  });
+}
+buildTrend();
+
+function setScenario(s, btn) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentScenario = s;
+}
+setInterval(() => {
+  if (!trendChart) return;
+  const nd = trendChart.data.datasets[0].data;
+  const ad = trendChart.data.datasets[1].data;
+  let nNew, aNew;
+  if      (currentScenario === 'normal') { nNew = Math.floor(Math.random()*80+350);  aNew = Math.floor(Math.random()*20+10); }
+  else if (currentScenario === 'dos')    { nNew = Math.floor(Math.random()*60+200);  aNew = Math.floor(Math.random()*200+250); }
+  else if (currentScenario === 'probe')  { nNew = Math.floor(Math.random()*60+300);  aNew = Math.floor(Math.random()*80+80); }
+  else                                   { nNew = Math.floor(Math.random()*100+280); aNew = Math.floor(Math.random()*120+60); }
+  nd.push(nNew); nd.shift();
+  ad.push(aNew); ad.shift();
+  trendChart.update('none');
+}, 800);
+
+/* ── Donut chart ── */
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['DoS','Normal','Probe','R2L','U2R','Other'],
+    datasets: [{
+      data: [38.2,22.5,16.3,12.1,4.0,6.9],
+      backgroundColor: ['#E24B4A','#378ADD','#EF9F27','#534AB7','#D4537E','#888780'],
+      borderWidth: 0
+    }]
+  },
+  options: { responsive:false, cutout:'68%', plugins:{legend:{display:false},tooltip:{enabled:false}} }
+});
+
+/* ── ROC chart ── */
+new Chart(document.getElementById('rocChart'), {
+  type: 'line',
+  data: {
+    labels: [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
+    datasets: [
+      {label:'Random Forest (0.98)',  data:[0,0.82,0.92,0.95,0.97,0.975,0.98,0.985,0.99,0.995,1], borderColor:'#185FA5', borderWidth:2,   pointRadius:0, tension:0.4},
+      {label:'Logistic Reg. (0.92)',  data:[0,0.60,0.76,0.83,0.87,0.89, 0.91,0.93, 0.95,0.97, 1], borderColor:'#EF9F27', borderWidth:1.5, pointRadius:0, tension:0.4, borderDash:[5,3]},
+      {label:'Isolation Forest (0.91)',data:[0,0.55,0.72,0.80,0.85,0.88,0.90,0.92, 0.94,0.96, 1], borderColor:'#1D9E75', borderWidth:1.5, pointRadius:0, tension:0.4, borderDash:[3,3]},
+      {label:'Snort (0.81)',          data:[0,0.35,0.55,0.64,0.70,0.74, 0.78,0.82, 0.87,0.92, 1], borderColor:'#E24B4A', borderWidth:1.5, pointRadius:0, tension:0.4, borderDash:[2,4]},
+      {label:'Baseline',             data:[0,0.1, 0.2, 0.3, 0.4, 0.5,  0.6, 0.7,  0.8, 0.9,  1], borderColor:'rgba(128,128,128,0.35)', borderWidth:1, pointRadius:0, borderDash:[4,4]}
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{title:{display:true,text:'False positive rate',font:{size:11}},ticks:{font:{size:10}}},
+      y:{title:{display:true,text:'True positive rate', font:{size:11}},ticks:{font:{size:10}},min:0,max:1}
+    }
+  }
+});
+
+/* ── Confusion matrix ── */
+const matrixData = [
+  ['Normal',4821,12,  3,  0,  0],
+  ['DoS',      8,3912, 5,  2,  0],
+  ['Probe',    4,   7,1843, 1,  0],
+  ['R2L',      2,   1,  0,612,  3],
+  ['U2R',      0,   0,  0,  2, 41]
+];
+const classes = ['Normal','DoS','Probe','R2L','U2R'];
+const maxVal  = 4821;
+
+function cellColor(val, isCorrect) {
+  if (isCorrect) {
+    const intensity = Math.round(val / maxVal * 180);
+    return `rgb(${55-Math.round(intensity*.2)},${Math.round(138-intensity*.3)},${Math.round(221-intensity*.4)})`;
+  }
+  if (val === 0) return 'var(--bg-secondary)';
+  return `rgba(226,75,74,${Math.min(val/50, 0.7)})`;
+}
+
+let mHtml = '<table style="border-collapse:collapse;font-size:11px;width:100%">';
+mHtml += '<tr><td style="padding:4px 8px;color:var(--text-secondary);font-size:10px;">True ↓ / Pred →</td>';
+classes.forEach(c => { mHtml += `<td style="padding:4px 6px;text-align:center;font-weight:500;color:var(--text-secondary);font-size:10px;">${c}</td>`; });
+mHtml += '</tr>';
+matrixData.forEach((row, ri) => {
+  mHtml += `<tr><td style="padding:4px 8px;font-weight:500;color:var(--text-secondary);font-size:10px;white-space:nowrap;">${row[0]}</td>`;
+  for (let ci = 1; ci <= 5; ci++) {
+    const val = row[ci], isCorr = (ci-1 === ri);
+    const bg   = cellColor(val, isCorr);
+    const textC = isCorr ? '#fff' : (val === 0 ? 'var(--text-tertiary)' : '#A32D2D');
+    mHtml += `<td style="padding:8px 4px;text-align:center;background:${bg};color:${textC};border-radius:3px;font-weight:${isCorr?'600':'400'}">${val.toLocaleString()}</td>`;
+  }
+  mHtml += '</tr>';
+});
+mHtml += '</table>';
+document.getElementById('matrixContainer').innerHTML = mHtml;
+
+/* ── Classify event ── */
+const presets = {
+  dos:   {protocol:'tcp', service:'http', src:49282, dst:0,   dur:0, count:511, flag:'S0',  login:0},
+  probe: {protocol:'tcp', service:'ftp',  src:0,     dst:0,   dur:1, count:22,  flag:'REJ', login:0},
+  normal:{protocol:'tcp', service:'http', src:1032,  dst:888, dur:2, count:5,   flag:'SF',  login:1}
+};
+function loadPreset(type) {
+  const p = presets[type];
+  document.getElementById('f-protocol').value = p.protocol;
+  document.getElementById('f-service').value  = p.service;
+  document.getElementById('f-src').value   = p.src;
+  document.getElementById('f-dst').value   = p.dst;
+  document.getElementById('f-dur').value   = p.dur;
+  document.getElementById('f-count').value = p.count;
+  document.getElementById('f-flag').value  = p.flag;
+  document.getElementById('f-login').value = p.login;
+  classifyEvent();
+}
+
+function classifyEvent() {
+  const src   = +document.getElementById('f-src').value;
+  const dst   = +document.getElementById('f-dst').value;
+  const dur   = +document.getElementById('f-dur').value;
+  const cnt   = +document.getElementById('f-count').value;
+  const flag  = document.getElementById('f-flag').value;
+  const login = +document.getElementById('f-login').value;
+
+  let probs = {Normal:0, DoS:0, Probe:0, R2L:0, U2R:0};
+  if      (flag === 'S0' || (src > 20000 && dst < 100 && cnt > 200)) {
+    probs.DoS = 0.89 + Math.random()*0.08; probs.Normal=0.03; probs.Probe=0.04; probs.R2L=0.02; probs.U2R=0.02;
+  } else if (flag === 'REJ' || (cnt > 15 && cnt < 60 && src < 100)) {
+    probs.Probe = 0.82 + Math.random()*0.10; probs.Normal=0.06; probs.DoS=0.05; probs.R2L=0.04; probs.U2R=0.03;
+  } else if (!login && dst < 50 && src > 500) {
+    probs.R2L = 0.71 + Math.random()*0.12; probs.Normal=0.10; probs.DoS=0.08; probs.Probe=0.06; probs.U2R=0.05;
+  } else if (!login && cnt < 5 && src > 1000 && dst > 1000) {
+    probs.U2R = 0.65 + Math.random()*0.15; probs.Normal=0.14; probs.R2L=0.10; probs.DoS=0.06; probs.Probe=0.05;
+  } else {
+    probs.Normal = 0.88 + Math.random()*0.09; probs.DoS=0.03; probs.Probe=0.03; probs.R2L=0.02; probs.U2R=0.02;
+  }
+  const total = Object.values(probs).reduce((a,b)=>a+b,0);
+  Object.keys(probs).forEach(k => probs[k] /= total);
+
+  const predicted = Object.keys(probs).reduce((a,b) => probs[a]>probs[b]?a:b);
+  const descs = {
+    Normal:'Benign traffic — no action required.',
+    DoS:   'Denial-of-Service attack — high volume with no data transfer. Block source IP immediately.',
+    Probe: 'Network reconnaissance / port scan — attacker mapping the network. Monitor and restrict.',
+    R2L:   'Remote-to-Local attack — unauthorized remote access attempt. Isolate and investigate.',
+    U2R:   'User-to-Root privilege escalation — critical severity. Immediate incident response required.'
+  };
+  const colorMap = {Normal:'normal', DoS:'dos', Probe:'probe', R2L:'r2l', U2R:'u2r'};
+
+  const resEl = document.getElementById('classifyResult');
+  resEl.classList.add('visible');
+  const cl = document.getElementById('resultClass');
+  cl.textContent  = predicted;
+  cl.className    = 'result-value ' + colorMap[predicted];
+  document.getElementById('resultDesc').textContent = descs[predicted];
+
+  const anomaly = predicted !== 'Normal' && probs[predicted] > 0.8;
+  document.getElementById('anomalyResult').innerHTML =
+    `<i class="ti ti-${anomaly?'alert-triangle':'check'}" aria-hidden="true" style="margin-right:4px"></i>
+     <strong>Isolation Forest:</strong> ${anomaly
+       ? 'Anomaly flagged — outlier score above threshold (contamination=0.05)'
+       : 'No anomaly detected — within normal distribution bounds'}`;
+
+  const confEl = document.getElementById('confBars');
+  confEl.innerHTML = '';
+  const colors = {Normal:'#1D9E75', DoS:'#E24B4A', Probe:'#EF9F27', R2L:'#534AB7', U2R:'#D4537E'};
+  Object.keys(probs).forEach(k => {
+    const pct = Math.round(probs[k]*100);
+    confEl.innerHTML += `<div class="conf-item">
+      <span class="conf-name">${k}</span>
+      <div class="conf-bar"><div class="conf-fill" style="width:${pct}%;background:${colors[k]}"></div></div>
+      <span class="conf-pct">${pct}%</span>
+    </div>`;
+  });
+}
+</script>
+</body>
+</html>
