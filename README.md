@@ -64,39 +64,6 @@ ai-threat-detection/
 
 ---
 
-## Run locally
-
-```bash
-# Clone
-git clone https://github.com/<your-username>/ai-threat-detection.git
-cd ai-threat-detection
-
-# Just open the file — no npm install needed
-open index.html          # macOS
-start index.html         # Windows
-xdg-open index.html      # Linux
-```
-
----
-
-## Deploy on GitHub Pages (free hosting)
-
-```bash
-# 1. Push to GitHub
-git init
-git add .
-git commit -m "initial commit: AI cybersecurity threat detection model"
-git branch -M main
-git remote add origin https://github.com/<your-username>/ai-threat-detection.git
-git push -u origin main
-
-# 2. Enable GitHub Pages
-# Go to: Settings → Pages → Source → Deploy from branch → main / (root) → Save
-# Your site will be live at: https://<your-username>.github.io/ai-threat-detection/
-```
-
----
-
 ## References (from report)
 
 1. Tavallaee et al., "A Detailed Analysis of the KDD CUP 99 Data Set," IEEE CISDA, 2009.
